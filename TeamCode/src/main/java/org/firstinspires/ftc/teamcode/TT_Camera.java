@@ -56,19 +56,10 @@ import java.util.ArrayList;
          });
 
      }
-     public int scanSignal() {
+     public ArrayList<AprilTagDetection> scanSignal() {
          // Read detections, this givers a list of detetion
-         ArrayList<AprilTagDetection> currentDetections = aprilTagDetectionPipeline.getLatestDetections();
-         //  If size is > than 0, we detected something
-         if(currentDetections.size() > 0){
-             tagOfInterest = currentDetections.get(0);
-         }
-         // if we have a tag of interest than return ID
-         if(tagOfInterest == null ){
-             return 0;
-         } else {
-             return tagOfInterest.id;
-         }
+         return aprilTagDetectionPipeline.getLatestDetections();
+
      }
  }
 
