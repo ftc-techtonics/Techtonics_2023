@@ -23,7 +23,7 @@ public class TT_Hanger {
     static final double MAX_REV     = -1.0;     // Maximum REV power applied to motor
 
     // Define class members
-    DcMotor motor;
+    public DcMotor motor;
 
     public TT_Hanger(HardwareMap hardwareMap) {
 
@@ -40,13 +40,15 @@ public class TT_Hanger {
 
     }
 
-    public int save_current_position(PositionTag
- position_tag) {
+    public int save_current_position(PositionTag position_tag) {
         return set_position_tag_value(position_tag, motor.getCurrentPosition());
     }
 
-    public int set_position_tag_value(PositionTag
- position_tag, int value) {
+    public int get_current_position() {
+        return motor.getCurrentPosition();
+    }
+
+    public int set_position_tag_value(PositionTag position_tag, int value) {
 
         switch (position_tag) {
             case START:

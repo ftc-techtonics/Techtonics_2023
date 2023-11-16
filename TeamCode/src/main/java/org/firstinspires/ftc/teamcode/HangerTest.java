@@ -58,7 +58,7 @@ public class HangerTest extends LinearOpMode {
         // hanger.set_position_tag_value(TT_Hanger.PositionTag.FULL_CLOSED, 0);
 
         // Wait for the start button
-        telemetry.addData(">", "Press Start to run Hanger." );
+        telemetry.addData(">", "V001 - Press Start to run Hanger." );
         telemetry.update();
         waitForStart();
 
@@ -69,8 +69,8 @@ public class HangerTest extends LinearOpMode {
         // Ramp motor speeds till stop pressed.
         while(opModeIsActive()) {
 
-            if (hanger_continuous_mode) {
-                hanger.move(0);
+            if (!hanger_continuous_mode) {
+                hanger.motor.setPower(0);
             }
 
             if (gamepad1.y) {
@@ -87,13 +87,15 @@ public class HangerTest extends LinearOpMode {
 
             if (gamepad1.dpad_up) {
                 hanger_continuous_mode = false;
-                hanger.set_target_position(TT_Hanger.PositionTag.FULL_OPEN);
+//                hanger.set_target_position(TT_Hanger.PositionTag.FULL_OPEN);
                 hanger_power = 0.25;
+                hanger.motor.setPower(hanger_power);
             }
 
             if (gamepad1.dpad_down) {
                 hanger_continuous_mode = false;
-                hanger.set_target_position(TT_Hanger.PositionTag.FULL_CLOSED);
+//                hanger.set_target_position(TT_Hanger.PositionTag.FULL_CLOSED);
+                hanger.motor.setPower(hanger_power);
                 hanger_power = -0.25;
             }
 
@@ -103,6 +105,7 @@ public class HangerTest extends LinearOpMode {
 
             // Display the current value
             telemetry.addData("Hanger Power", "%5.2f", hanger_power);
+            telemetry.addData("Hanger Position", hanger.get_current_position());
             telemetry.addData(">", "Press Stop to end test." );
             telemetry.update();
 
