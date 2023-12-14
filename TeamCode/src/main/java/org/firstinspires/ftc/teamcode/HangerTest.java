@@ -31,7 +31,6 @@ package org.firstinspires.ftc.teamcode;
 
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
-import com.qualcomm.robotcore.hardware.DcMotor;
 
 /*
  * This OpMode ramps a single motor speed up and down repeatedly until Stop is pressed.
@@ -54,58 +53,32 @@ public class HangerTest extends LinearOpMode {
     public void runOpMode() {
 
         TT_Hanger hanger = new TT_Hanger(hardwareMap);
-        // hanger.set_position_tag_value(TT_Hanger.PositionTag.FULL_OPEN, 1000);
-        // hanger.set_position_tag_value(TT_Hanger.PositionTag.FULL_CLOSED, 0);
+        hanger.setSavedPower(0.35);
 
         // Wait for the start button
+        telemetry.addData("Hanger Power", "%5.2f", hanger.getPower());
+        telemetry.addData("Hanger Position", "%d", hanger.getCurrentPosition());
         telemetry.addData(">", "V001 - Press Start to run Hanger." );
         telemetry.update();
         waitForStart();
 
-        double hanger_power = 0;
-        int hanger_position = 0;
-        boolean hanger_continuous_mode = false;
-
-        // Ramp motor speeds till stop pressed.
         while(opModeIsActive()) {
 
-            if (!hanger_continuous_mode) {
-                hanger.motor.setPower(0);
-            }
-
-            if (gamepad1.y) {
-                hanger_continuous_mode = true;
-                hanger.set_target_position(TT_Hanger.PositionTag.FULL_OPEN);
-                hanger_power = 0.25;
-            }
-
-            if (gamepad1.a) {
-                hanger_continuous_mode = true;
-                hanger.set_target_position(TT_Hanger.PositionTag.FULL_CLOSED);
-                hanger_power = -0.25;
-            }
-
             if (gamepad1.dpad_up) {
-                hanger_continuous_mode = false;
-//                hanger.set_target_position(TT_Hanger.PositionTag.FULL_OPEN);
-                hanger_power = 0.25;
-                hanger.motor.setPower(hanger_power);
+                hanger.close();
+            } else if (gamepad1.dpad_down) {
+                hanger.open();
+            } else if (gamepad1.a && !gamepad1.start) {
+                hanger.moveTo(TT_Hanger.PositionTag.FULL_OPEN);
+            } else if (gamepad1.y) {
+                hanger.moveTo(TT_Hanger.PositionTag.FULL_CLOSED);
+            } else if (!hanger.isBusy()) {
+                hanger.stop();
             }
 
-            if (gamepad1.dpad_down) {
-                hanger_continuous_mode = false;
-//                hanger.set_target_position(TT_Hanger.PositionTag.FULL_CLOSED);
-                hanger.motor.setPower(hanger_power);
-                hanger_power = -0.25;
-            }
-
-            if (hanger_continuous_mode) {
-                hanger.move(hanger_power);
-            }
-
-            // Display the current value
-            telemetry.addData("Hanger Power", "%5.2f", hanger_power);
-            telemetry.addData("Hanger Position", hanger.get_current_position());
+            // Display the current values
+            telemetry.addData("Hanger Power", "%5.2f", hanger.getPower());
+            telemetry.addData("Hanger Position", "%d", hanger.getCurrentPosition());
             telemetry.addData(">", "Press Stop to end test." );
             telemetry.update();
 
@@ -114,7 +87,7 @@ public class HangerTest extends LinearOpMode {
         }
 
         // Turn off motor and signal done;
-        hanger.move(0);
+        hanger.stop();
         telemetry.addData(">", "Done");
         telemetry.update();
 

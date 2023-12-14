@@ -6,26 +6,20 @@ import com.qualcomm.robotcore.hardware.HardwareMap;
 
 public class TT_Hanger {
 
+    public final double DEFAULT_POWER = 0.25;
     public static enum PositionTag {FULL_CLOSED, START, FULL_OPEN};
-    static final int DEFAULT_FULL_OPEN = 1000;
-    static final int DEFAULT_FULL_CLOSED = 0;
-    static final int DEFAULT_START = DEFAULT_FULL_OPEN;
 
+    static final int DEFAULT_START = 0;
+    static final int DEFAULT_FULL_OPEN = 2000;
+    static final int DEFAULT_FULL_CLOSED = -2000;
 
+    private DcMotor motor;
+    private double saved_power = DEFAULT_POWER;
+    private int position_start = DEFAULT_START;
     private int position_full_open = DEFAULT_FULL_OPEN;
     private int position_full_closed = DEFAULT_FULL_CLOSED;
-    private int position_start = DEFAULT_START;
-    private int position_target= DEFAULT_START;
 
-    static final double INCREMENT   = 0.01;     // amount to ramp motor each CYCLE_MS cycle
-    static final int    CYCLE_MS    =   50;     // period of each cycle
-    static final double MAX_FWD     =  1.0;     // Maximum FWD power applied to motor
-    static final double MAX_REV     = -1.0;     // Maximum REV power applied to motor
-
-    // Define class members
-    public DcMotor motor;
-
-    public TT_Hanger(HardwareMap hardwareMap) {
+    TT_Hanger(HardwareMap hardwareMap) {
 
         // Change the text in quotes to match any motor name on your robot.
         motor = hardwareMap.get(DcMotor.class, "hanger");
@@ -35,84 +29,71 @@ public class TT_Hanger {
         motor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         motor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
 
-        save_current_position(PositionTag
-.START);
-
     }
 
-    public int save_current_position(PositionTag position_tag) {
-        return set_position_tag_value(position_tag, motor.getCurrentPosition());
+    public double getPower() {
+        double power = motor.getPower();
+        if (motor.getMode() == DcMotor.RunMode.RUN_TO_POSITION) {
+            if (motor.getTargetPosition() < motor.getCurrentPosition()) {
+                power = 0 - power;
+            }
+        }
+        return power;
     }
 
-    public int get_current_position() {
+    public void setSavedPower(double power) {
+        saved_power = power;
+    }
+
+    public int getCurrentPosition() {
         return motor.getCurrentPosition();
     }
 
-    public int set_position_tag_value(PositionTag position_tag, int value) {
-
+    public int getPositionByTag(PositionTag position_tag) {
         switch (position_tag) {
             case START:
-                position_start = value;
-                break;
+                return position_start;
             case FULL_OPEN:
-                position_full_open = value;
-                break;
+                return position_full_open;
             case FULL_CLOSED:
-                position_full_closed = value;
-                break;
+                return position_full_closed;
         }
-
-        return value;
+        return 0;
     }
+    public void moveTo(PositionTag position_tag) {
 
-    public int set_target_position(PositionTag
- position_tag) {
-
-        position_target = motor.getCurrentPosition();
-
-        switch (position_tag) {
-            case START:
-                position_target = position_start;
-                break;
-            case FULL_OPEN:
-                position_target = position_full_open;
-                break;
-            case FULL_CLOSED:
-                position_target = position_full_closed;
-                break;
-        }
-
-        return set_target_position(position_target);
-    }
-
-    public int set_target_position(int target) {
-        position_target = target;
-        motor.setTargetPosition(position_target);
+        int target_position = getPositionByTag(position_tag);
+        motor.setTargetPosition(target_position);
         motor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        motor.setPower(saved_power);
 
-        return motor.getCurrentPosition();
     }
 
-    public int move(double power) {
-        if (power > 0) {
-            if (motor.getCurrentPosition() >= position_target) {
-                power = 0;
-            } else {
-                power = Math.min(MAX_FWD, power);
-            }
-
-        } else if (power < 0) {
-            if (motor.getCurrentPosition() <= position_target) {
-                power = 0;
-            }
-            else {
-                power = Math.max(MAX_REV, power);
-            }
+    public void move(double power) {
+        motor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        int current_position = getCurrentPosition();
+        if ((current_position > position_full_closed && power < 0) ||
+                (current_position < position_full_open && power > 0)) {
+            motor.setPower(power);
+        } else {
+            stop();
         }
-        motor.setPower(power);
-        return motor.getCurrentPosition();
-
     }
 
+    public void open() {
+        move(Math.abs(saved_power)); // move in positive direction
+    }
 
+    public void close() {
+        move(0-Math.abs(saved_power)); // move in negative direction
+    }
+
+    public boolean isBusy() {
+        return motor.isBusy();
+    }
+
+    public void stop() {
+        motor.setPower(0);
+    }
 }
+
