@@ -24,8 +24,8 @@ public class TT_Hanger {
         // Change the text in quotes to match any motor name on your robot.
         motor = hardwareMap.get(DcMotor.class, "hanger");
 
-        motor.setDirection(DcMotorSimple.Direction.REVERSE);
         motor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        motor.setDirection(DcMotorSimple.Direction.FORWARD);
         motor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         motor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
 
@@ -33,11 +33,13 @@ public class TT_Hanger {
 
     public double getPower() {
         double power = motor.getPower();
+/*
         if (motor.getMode() == DcMotor.RunMode.RUN_TO_POSITION) {
             if (motor.getTargetPosition() < motor.getCurrentPosition()) {
                 power = 0 - power;
             }
         }
+ */
         return power;
     }
 

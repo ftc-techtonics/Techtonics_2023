@@ -95,7 +95,7 @@ public class IntakeTesting extends LinearOpMode {
             rightBackDrive.setPower(drive);
             leftBackDrive.setPower(drive);
 
-            telemetry.addData("Power", "Power %1.2f", drive;
+            telemetry.addData("Power", "Power %1.2f", drive);
             telemetry.update();
             sleep(10);
 

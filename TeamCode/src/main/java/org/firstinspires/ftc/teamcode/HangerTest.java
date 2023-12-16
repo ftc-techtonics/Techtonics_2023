@@ -58,7 +58,7 @@ public class HangerTest extends LinearOpMode {
         // Wait for the start button
         telemetry.addData("Hanger Power", "%5.2f", hanger.getPower());
         telemetry.addData("Hanger Position", "%d", hanger.getCurrentPosition());
-        telemetry.addData(">", "V001 - Press Start to run Hanger." );
+        telemetry.addData(">", "V008 - Press Start to run Hanger." );
         telemetry.update();
         waitForStart();
 
