@@ -88,12 +88,8 @@ public class IntakeTesting extends LinearOpMode {
         waitForStart();
 
         while (opModeIsActive()) {
-            drive = 1;
 
-            leftFrontDrive.setPower(drive);
-            rightFrontDrive.setPower(drive);
-            rightBackDrive.setPower(drive);
-            leftBackDrive.setPower(drive);
+
 
             telemetry.addData("Power", "Power %1.2f", drive);
             telemetry.update();
@@ -111,16 +107,28 @@ public class IntakeTesting extends LinearOpMode {
             }
             if (gamepad1.b) {
             //arm up and down
-
+                drive = .5;
+                leftFrontDrive.setPower(drive);
+                rightFrontDrive.setPower(drive);
+                rightBackDrive.setPower(drive);
+                leftBackDrive.setPower(drive);
 
             }
             if (gamepad1.x) {
                 //lift up
-
+                drive = 1;
+                leftFrontDrive.setPower(drive);
+                rightFrontDrive.setPower(drive);
+                rightBackDrive.setPower(drive);
+                leftBackDrive.setPower(drive);
             }
             if (gamepad1.y) {
                 //lift down
-
+                drive = 0;
+                leftFrontDrive.setPower(drive);
+                rightFrontDrive.setPower(drive);
+                rightBackDrive.setPower(drive);
+                leftBackDrive.setPower(drive);
             }
             if (gamepad1.right_bumper) {
                 //Intake on
