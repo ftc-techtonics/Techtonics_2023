@@ -29,18 +29,14 @@
 
 package org.firstinspires.ftc.teamcode;
 
-import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.Servo;
 
-import java.util.List;
-import java.util.concurrent.TimeUnit;
-
-@TeleOp(name = "Teleop Competition", group = "Techtonics")
-public class IntakeTesting extends LinearOpMode {
+@TeleOp(name = "Wiring Testing", group = "Techtonics ")
+public class Motor_Wiring_Testing extends LinearOpMode {
     // Adjust these numbers to suit your robot.
     final double DESIRED_DISTANCE = 12.0; //  this is how close the camera should get to the target (inches)
 
@@ -67,19 +63,17 @@ public class IntakeTesting extends LinearOpMode {
     private Servo pixelRelease = null;
     private Servo arm = null;
 
-    private Servo drone = null;
-
     @Override
     public void runOpMode() {
         double drive = 0;        // Desired forward power/speed (-1 to +1)
         double strafe = 0;        // Desired strafe power/speed (-1 to +1)
         double turn = 0;        // Desired turning power/speed (-1 to +1)
         double pixelslidemaxheight = 0.3;
-        int maxLiftHeight = 8500;
+        int maxLiftHeight = -1000;
         int minLiftHeight = 0;
         int intakestate = 0;
-        double intakePower = .7;
-        double maxLiftPower = 1;
+        double intakePower = .9;
+        double maxLiftPower = 0.3;
         double minArmHeight = 0;
         double maxArmHeight = 0.6;
         boolean dpadPressedUp = false;
@@ -88,12 +82,16 @@ public class IntakeTesting extends LinearOpMode {
         boolean dpadPressedRight = false;
         double maxReleasePos = 0.5;
 
-        int releaseOpen = 0;
+        boolean releaseOpen = true;
         boolean armUp = false;
 
         boolean buttonPressedLBumper = false;
         boolean buttonPressedB = false;
         boolean buttonPressedA = false;
+        int mode = 1;
+        double powerDisplay = 0;
+        int positionDisplay = 0;
+        String modeDisplay = "";
 
         // Initialize the Apriltag Detection process
 
@@ -105,6 +103,10 @@ public class IntakeTesting extends LinearOpMode {
         rightFrontDrive = hardwareMap.get(DcMotor.class, "rightfront_drive");
         leftBackDrive = hardwareMap.get(DcMotor.class, "leftback_drive");
         rightBackDrive = hardwareMap.get(DcMotor.class, "rightback_drive");
+        //leftFrontDrive.setDirection(DcMotor.Direction.FORWARD);
+        //leftBackDrive.setDirection(DcMotor.Direction.REVERSE);
+        //rightFrontDrive.setDirection(DcMotor.Direction.FORWARD);
+        //rightBackDrive.setDirection(DcMotor.Direction.REVERSE);
 
         intakeleft = hardwareMap.get(DcMotor.class, "intakeleft");
         intakeright = hardwareMap.get(DcMotor.class, "intakeright");
@@ -114,153 +116,57 @@ public class IntakeTesting extends LinearOpMode {
 
         pixelSlide = hardwareMap.get(Servo.class, "pixelslide");
         pixelRelease = hardwareMap.get(Servo.class, "pixelrelease");
-        drone = hardwareMap.get(Servo.class, "drone");
         arm = hardwareMap.get(Servo.class, "arm");
 
         // To drive forward, most robots need the motor on one side to be reversed, because the axles point in opposite directions.
         // When run, this OpMode should start both motors driving forward. So adjust these two lines based on your first test drive.
         // Note: The settings here assume direct drive on left and right wheels.  Gear Reduction or 90 Deg drives may require direction flips
-        leftFrontDrive.setDirection(DcMotor.Direction.FORWARD);
-        leftBackDrive.setDirection(DcMotor.Direction.REVERSE);
-        rightFrontDrive.setDirection(DcMotor.Direction.FORWARD);
-        rightBackDrive.setDirection(DcMotor.Direction.REVERSE);
+
 
         telemetry.addData(">", "Touch Play to start OpMode");
         telemetry.update();
         waitForStart();
 
-        pixelRelease.setPosition(maxReleasePos);
-        sleep(100);
-        arm.setPosition(minArmHeight);
-
-        releaseOpen = 0;
         while (opModeIsActive()) {
+            sleep(10);
 
-            if (gamepad1.a) {
-                if (!buttonPressedA) {
-                    //open and close the release
-                    if (releaseOpen == 0) {
-                        //Set to pickup
-                        arm.setPosition(minArmHeight);
-                        pixelRelease.setPosition(0.1);
-                        releaseOpen = 1;
-                    } else if (releaseOpen == 1 ){
-                        // Set to Release
-                        pixelRelease.setPosition(maxReleasePos);
-                        sleep(200);
-                        arm.setPosition(maxArmHeight);
-                        releaseOpen = 2;
-                    } else if (releaseOpen == 2) {
-                        // Release
-                        pixelRelease.setPosition(maxReleasePos - .1);
-                        releaseOpen = 0;
-                    }
-                    buttonPressedA = true;
-                }
-            } else {
-                buttonPressedA = false;
-            }
+            if (gamepad1.a)
+                modeDisplay = "Back Left";
+            else if (gamepad1.b) modeDisplay = "Back Right";
+            else if (gamepad1.x) modeDisplay = "Front Left";
+            else if (gamepad1.y) modeDisplay = "Front Right";
 
-            if (gamepad1.dpad_up) {
-                if (!dpadPressedUp && intakePower <= 1) {
-                    intakePower = intakePower + 0.05;
-                }
-                dpadPressedUp = true;
-            } else {
-                dpadPressedUp = false;
+            powerDisplay = gamepad1.left_stick_y;
+            if (modeDisplay == "Back Left") {
+                leftBackDrive.setPower(powerDisplay);
+                positionDisplay = leftBackDrive.getCurrentPosition();
+            } else {leftBackDrive.setPower(0);
             }
-            if (gamepad1.dpad_down) {
-                if (!dpadPressedDown && intakePower >= 0) {
-                    intakePower = intakePower - .05;
-                }
-                dpadPressedDown = true;
-            } else {
-                dpadPressedDown = false;
+            if (modeDisplay == "Back Right") {
+                rightBackDrive.setPower(powerDisplay);
+                positionDisplay = rightBackDrive.getCurrentPosition();
+            } else {rightBackDrive.setPower(0);
             }
-            if (gamepad1.dpad_left) {
-                drone.setPosition(0);
+            if (modeDisplay == "Front Left") {
+                leftFrontDrive.setPower(powerDisplay);
+                positionDisplay = leftFrontDrive.getCurrentPosition();
+            } else {leftFrontDrive.setPower(0);
             }
-            if (gamepad1.dpad_right) {
-                //drone.setPosition(1);
-            }
-            if (gamepad1.b) {
-                //arm up and down
-                if (!buttonPressedB) {
-                    if (armUp) {
-                        arm.setPosition(minArmHeight);
-                        pixelRelease.setPosition(0.1);
-                        releaseOpen = 0;
-                    } else {
-                        arm.setPosition(maxArmHeight);
-                    }
-                    armUp = !armUp;
-                    buttonPressedB = true;
-                }
-            } else {
-                buttonPressedB = false;
-            }
-
-            if (gamepad1.y && liftmotor.getCurrentPosition() <= maxLiftHeight) {
-                //lift up
-                liftmotor.setPower(maxLiftPower);
-            } else if (gamepad1.x ) {//&& liftmotor.getCurrentPosition() <= minLiftHeight) {
-                //lift down
-                liftmotor.setPower(-maxLiftPower);
-            } else {
-                liftmotor.setPower(0);
-            }
-
-            if (gamepad1.right_bumper) {
-                //Intake on
-                intakeright.setPower(intakePower);
-                intakeleft.setPower(intakePower);
-                intakestate = 1;
-            }
-            if (gamepad1.left_bumper) {
-                if (!buttonPressedLBumper) {
-                    //intake off and reverse
-                    if (intakestate != 0) {
-                        intakeright.setPower(0);
-                        intakeleft.setPower(0);
-                        intakestate = 0;
-                    } else {
-                        intakeright.setPower(-intakePower);
-                        intakeleft.setPower(-intakePower);
-                        intakestate = -1;
-                    }
-                    buttonPressedLBumper = true;
-                }
-            } else {
-                buttonPressedLBumper = false;
-            }
-
-            //the pixel slide up and down
-            pixelSlide.setPosition(gamepad1.right_trigger * pixelslidemaxheight);
-
-            //move Robot
-            // drive using manual POV Joystick mode.  Slow things down to make the robot more controlable.
-
-            drive  = -gamepad1.left_stick_y  / 2.0;  // Reduce drive rate to 50%.
-            strafe = gamepad1.left_stick_x  / 2.0;  // Reduce strafe rate to 50%.
-            turn   = gamepad1.right_stick_x / 3.0;  // Reduce turn rate to 33%.
-            moveRobot(drive, strafe, turn);
+            if (modeDisplay == "Front Right") {
+                rightFrontDrive.setPower(powerDisplay);
+                positionDisplay = rightFrontDrive.getCurrentPosition();
+            } else { rightFrontDrive.setPower(0);}
 
             //telemetry stuff
             try {
-                telemetry.addLine("Positions-");
-                telemetry.addData("pixelSlide: %1.2f", pixelSlide.getPosition());
-                telemetry.addData(" pixelRelease: %1.2f", pixelRelease.getPosition());
-                telemetry.addData(" arm: %1.2f", arm.getPosition());
-                telemetry.addData(" lift: %d", liftmotor.getCurrentPosition());
-                telemetry.addLine();
-                telemetry.addData("intake power: %1.2f", intakePower);
-                telemetry.addData(" intake state: %d", intakestate);
+                telemetry.addData("Mode:     %s", modeDisplay);
+                telemetry.addData("Power:    %f", powerDisplay);
+                telemetry.addData("Position: %d ", positionDisplay);
                 telemetry.update();
             } catch (Exception ex) {
                 telemetry.addLine("failed");
                 telemetry.update();
             }
-
 
             sleep(10);
         }
@@ -277,10 +183,10 @@ public class IntakeTesting extends LinearOpMode {
      */
     public void moveRobot(double axial, double lateral, double yaw) {
         // Calculate wheel powers.
-        double leftFrontPower  = axial + lateral + yaw;
+        double leftFrontPower = axial + lateral + yaw;
         double rightFrontPower = axial - lateral - yaw;
-        double leftBackPower   = axial - lateral + yaw;
-        double rightBackPower  = axial + lateral - yaw;
+        double leftBackPower = axial - lateral + yaw;
+        double rightBackPower = axial + lateral - yaw;
 
 
         // Normalize wheel powers to be less than 1.0
